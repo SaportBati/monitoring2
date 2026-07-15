@@ -1,6 +1,33 @@
+import sys
+import subprocess
+import importlib
+
+# ---------------------------------------------------------------------------
+# Автоматическая установка зависимостей.
+# Если пакет не найден — ставим его через pip прямо во время запуска скрипта.
+# Это избавляет от необходимости синхронизировать requirements.txt/Dockerfile.
+# ---------------------------------------------------------------------------
+REQUIRED_PACKAGES = {
+    # import_name: pip_package_spec
+    "aiogram": "aiogram==3.4.1",
+    "selenium": "selenium==4.27.1",
+}
+
+
+def ensure_packages_installed():
+    for import_name, pip_spec in REQUIRED_PACKAGES.items():
+        try:
+            importlib.import_module(import_name)
+        except ImportError:
+            print(f"[bootstrap] Пакет '{import_name}' не найден, устанавливаю '{pip_spec}'...", flush=True)
+            subprocess.check_call([sys.executable, "-m", "pip", "install", "--no-cache-dir", pip_spec])
+            print(f"[bootstrap] '{pip_spec}' успешно установлен.", flush=True)
+
+
+ensure_packages_installed()
+
 import logging
 import asyncio
-import sys
 from aiogram import Bot, Dispatcher, types, F
 from aiogram.types import Message
 from aiogram.filters import Command
